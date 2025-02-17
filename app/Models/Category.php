@@ -9,6 +9,7 @@ class Category extends Model
 {
     use HasFactory;
     protected $guarded = [];
+    protected $hidden = ['id', 'created_at', 'updated_at', 'pivot']; // JSON rezultat prikazuje samo naziv
 
     public function products()
     {

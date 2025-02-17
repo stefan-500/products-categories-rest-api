@@ -18,12 +18,10 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        # Pivot tabela product - category
         Schema::create('product_category', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Product::class)->constrained()->onDelete('cascade');
             $table->foreignIdFor(Category::class)->constrained()->onDelete('cascade');
-            $table->timestamps();
         });
     }
 
