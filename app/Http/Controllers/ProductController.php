@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Product;
+use Carbon\Carbon;
 use ErrorException;
 use Illuminate\Http\Request;
+use Str;
 use Throwable;
 
 class ProductController extends Controller
@@ -98,9 +101,9 @@ class ProductController extends Controller
             $updated_product->sale_price = formatirajCijenu($updated_product->sale_price);
 
         } catch (ErrorException $e) {
-            return response()->json(["greška" => $e->getMessage()]);
+            return response()->json(["error" => $e->getMessage()]);
         } catch (Throwable $throwable) {
-            return response()->json(["greška" => $throwable->getMessage()]);
+            return response()->json(["error" => $throwable->getMessage()]);
         }
 
         return response()->json($updated_product); // uspijeh
@@ -115,9 +118,78 @@ class ProductController extends Controller
         try {
             $product->delete();
         } catch (Throwable $e) {
-            return response()->json(['greška' => 'Neuspiješno brisanje.'], 500);
+            return response()->json(['error' => 'Neuspiješno brisanje.'], 500);
         }
 
         return response(null, 202); // uspijeh
+    }
+
+    public function generateCategoryProductsCSV(Request $request)
+    {
+        // Validacija
+        $validated = $request->validate([
+            'id' => 'required|integer'
+        ]);
+        $category_id = $validated['id'];
+
+        // Proizvodi kategorije po POST parametru id
+        $products = Product::whereHas('categories', function ($query) use ($category_id) {
+            $query->where('categories.id', $category_id);
+        })
+            ->with(['manufacturer', 'categories.departments'])
+            ->get();
+
+        // Kategorija po POST parametru id
+        $category = Category::findOrFail($category_id);
+        $category_name = $category->name;
+
+        // Kreiranje naziva fajla
+        $category_name = Str::lower($category->name); // pretvaranje slova u lowercase
+        // Zamjena ne-alfanumerickih karaktera razmakom
+        $alnum_category_name = Str::replaceMatches('/[^A-Za-z0-9]/', ' ', $category_name);
+        $formatted_category_name = Str::deduplicate($alnum_category_name); // uklanjanje suvisnih razmaka
+        $category_name = Str::replaceMatches('/ /', '_', $formatted_category_name); // zamjena razmaka sa _
+
+        $date_time = Carbon::now();
+        $year = $date_time->get('year');
+        $month = $date_time->get('month');
+        $day = $date_time->get('day');
+        $hour = $date_time->get('hour');
+        $minute = $date_time->get('minute');
+
+        $path = storage_path('storage/app/csv/');
+        $filename = $category_name . "_" . $year . "_" . $month . "_" . $day . "-" . $hour . "_" . $minute . ".csv";
+
+        $file = fopen($filename, 'w'); // kreira fajl ako ne postoji
+        $columns = array('product_number', 'category_name', 'department_name', 'manufacturer_name', 'upc', 'sku', 'regular_price', 'sale_price', 'description');
+        fputcsv($file, $columns); // dodaje nazive kolona u CSV fajl
+
+        // Dodavanje podataka o proizvodima u CSV fajl
+        foreach ($products as $product) {
+            $product->regular_price = formatirajCijenu($product->regular_price);
+            $product->regular_price = formatirajCijenu($product->sale_price);
+            fputcsv(
+                $file,
+                [
+                    $product->product_number,
+                    $product->upc,
+                    $product->sku,
+                    $product->regular_price,
+                    $product->sale_price,
+                    $product->description,
+                    $product->manufacturer->name,
+                    $category->name
+                    # TODO - dodati department name
+                ]
+            );
+        }
+        // Uspijeh
+        // return response()->json([
+        //     "success" => true,
+        //     "message" => "Uspiješno sačuvani podaci u CSV fajlu",
+        //     "file" => [
+        //         "path" => $path
+        //     ]
+        // ]);
     }
 }

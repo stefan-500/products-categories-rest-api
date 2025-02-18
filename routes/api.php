@@ -22,3 +22,7 @@ Route::get('/categories', [CategoryController::class, 'index']); // prikaz kateg
 // Poslati PUT request na rutu: /api/categories/{category}, sa request body { "name": "Naziv kategorije" } (JSON)
 Route::put('/categories/{category}', [CategoryController::class, 'update']);
 Route::delete('/categories/{category}', [CategoryController::class, 'destroy']); // brisanje kategorije
+
+// Cuvanje podataka o proizvodima specificne kategorije u CSV fajl
+// Poslati POST request na rutu: /api/category-products, sa request body {"id": int} (JSON)
+Route::post('/category-products', [ProductController::class, 'generateCategoryProductsCSV']);
