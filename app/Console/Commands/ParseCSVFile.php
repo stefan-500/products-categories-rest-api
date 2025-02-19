@@ -29,11 +29,11 @@ class ParseCSVFile extends Command
      */
     public function handle()
     {
+        // Dodati naziv CSV fajla iz root foldera projekta (nazivfajla.csv)
         $file = fopen("", "r");
         $assoc_array = [];
 
         if ($file !== false) {
-
             if (($header_data = fgetcsv($file)) !== false) { // header podaci 
                 $keys = $header_data;
             }

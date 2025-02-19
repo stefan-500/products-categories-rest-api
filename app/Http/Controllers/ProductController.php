@@ -150,7 +150,7 @@ class ProductController extends Controller
         $formatted_category_name = Str::deduplicate($alnum_category_name); // uklanjanje suvisnih razmaka
         $category_name = Str::replaceMatches('/ /', '_', $formatted_category_name); // zamjena razmaka sa _
 
-        $date_time = Carbon::now();
+        $date_time = Carbon::now()->setTimezone('Europe/Belgrade'); // DateTime instanca
         $year = $date_time->get('year');
         $month = $date_time->get('month');
         $day = $date_time->get('day');
@@ -158,6 +158,9 @@ class ProductController extends Controller
         $minute = $date_time->get('minute');
 
         $folder_path = storage_path('app\\csv\\'); // folder za CSV fajl
+        if (!file_exists($folder_path)) {
+            mkdir($folder_path);
+        }
         $filename = $category_name . "_" . $year . "_" . $month . "_" . $day . "-" . $hour . "_" . $minute . ".csv";
         $file_path = $folder_path . $filename;
 
@@ -192,7 +195,7 @@ class ProductController extends Controller
         // Uspijeh
         return response()->json([
             "success" => true,
-            "message" => "Uspiješno sačuvani podaci u CSV fajlu",
+            "message" => "Uspiješno sačuvani podaci u CSV fajl",
             "file" => [
                 "path" => $file_path
             ]

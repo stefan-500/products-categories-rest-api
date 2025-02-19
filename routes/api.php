@@ -10,7 +10,7 @@ Route::get('/products', [DataController::class, 'index']); // ispis svih podatak
 Route::get('/products-specific', [ProductController::class, 'index']); // ispis podataka svih proizvoda
 
 // Prikaz proizvoda specificne kategorije
-// Dodati request parametar: ?category=id
+// Dodati GET request parametar: ?category=id
 Route::get('/category-products', [ProductController::class, 'show']);
 // Azuriranje proizvoda
 // Poslati PUT request na rutu: /api/products/{product}, sa request body { "polje": "Nova vrijednost" } (JSON)
