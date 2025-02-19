@@ -157,39 +157,45 @@ class ProductController extends Controller
         $hour = $date_time->get('hour');
         $minute = $date_time->get('minute');
 
-        $path = storage_path('storage/app/csv/');
+        $folder_path = storage_path('app\\csv\\'); // folder za CSV fajl
         $filename = $category_name . "_" . $year . "_" . $month . "_" . $day . "-" . $hour . "_" . $minute . ".csv";
+        $file_path = $folder_path . $filename;
 
-        $file = fopen($filename, 'w'); // kreira fajl ako ne postoji
+        $file = fopen($file_path, 'w'); // kreira fajl ako ne postoji
         $columns = array('product_number', 'category_name', 'department_name', 'manufacturer_name', 'upc', 'sku', 'regular_price', 'sale_price', 'description');
         fputcsv($file, $columns); // dodaje nazive kolona u CSV fajl
+
+        // Uzima polje name iz niza, ako postoji vise department-a dodaje ;
+        $category_departments = $category->departments->pluck('name')->implode('; ');
 
         // Dodavanje podataka o proizvodima u CSV fajl
         foreach ($products as $product) {
             $product->regular_price = formatirajCijenu($product->regular_price);
-            $product->regular_price = formatirajCijenu($product->sale_price);
+            $product->sale_price = formatirajCijenu($product->sale_price);
             fputcsv(
                 $file,
                 [
                     $product->product_number,
+                    $category->name,
+                    $category_departments,
+                    $product->manufacturer->name,
                     $product->upc,
                     $product->sku,
                     $product->regular_price,
                     $product->sale_price,
                     $product->description,
-                    $product->manufacturer->name,
-                    $category->name
-                    # TODO - dodati department name
                 ]
             );
         }
+        fclose($file);
+
         // Uspijeh
-        // return response()->json([
-        //     "success" => true,
-        //     "message" => "Uspiješno sačuvani podaci u CSV fajlu",
-        //     "file" => [
-        //         "path" => $path
-        //     ]
-        // ]);
+        return response()->json([
+            "success" => true,
+            "message" => "Uspiješno sačuvani podaci u CSV fajlu",
+            "file" => [
+                "path" => $file_path
+            ]
+        ]);
     }
 }
