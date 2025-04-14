@@ -95,10 +95,10 @@ class ProductController extends Controller
 
             $product->update($data); // azuriranje
 
-            $updated_product = Product::findOrFail($product->id);
+            $updatedProduct = Product::findOrFail($product->id);
             // Formatiranje cijena iz bp za prikaz
-            $updated_product->regular_price = formatirajCijenu($updated_product->regular_price);
-            $updated_product->sale_price = formatirajCijenu($updated_product->sale_price);
+            $updatedProduct->regular_price = formatirajCijenu($updatedProduct->regular_price);
+            $updatedProduct->sale_price = formatirajCijenu($updatedProduct->sale_price);
 
         } catch (ErrorException $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -106,7 +106,7 @@ class ProductController extends Controller
             return response()->json(["error" => $throwable->getMessage()]);
         }
 
-        return response()->json($updated_product); // uspijeh
+        return response()->json($updatedProduct); // uspijeh
     }
 
     /**
@@ -130,46 +130,46 @@ class ProductController extends Controller
         $validated = $request->validate([
             'id' => 'required|integer'
         ]);
-        $category_id = $validated['id'];
+        $categoryID = $validated['id'];
 
         // Proizvodi kategorije po POST parametru id
-        $products = Product::whereHas('categories', function ($query) use ($category_id) {
-            $query->where('categories.id', $category_id);
+        $products = Product::whereHas('categories', function ($query) use ($categoryID) {
+            $query->where('categories.id', $categoryID);
         })
             ->with(['manufacturer', 'categories.departments'])
             ->get();
 
         // Kategorija po POST parametru id
-        $category = Category::findOrFail($category_id);
-        $category_name = $category->name;
+        $category = Category::findOrFail($categoryID);
+        $categoryName = $category->name;
 
         // Kreiranje naziva fajla
-        $category_name = Str::lower($category->name); // pretvaranje slova u lowercase
+        $categoryName = Str::lower($category->name); // pretvaranje slova u lowercase
         // Zamjena ne-alfanumerickih karaktera razmakom
-        $alnum_category_name = Str::replaceMatches('/[^A-Za-z0-9]/', ' ', $category_name);
-        $formatted_category_name = Str::deduplicate($alnum_category_name); // uklanjanje suvisnih razmaka
-        $category_name = Str::replaceMatches('/ /', '_', $formatted_category_name); // zamjena razmaka sa _
+        $alNumCategoryName = Str::replaceMatches('/[^A-Za-z0-9]/', ' ', $categoryName);
+        $formattedCategoryName = Str::deduplicate($alNumCategoryName); // uklanjanje suvisnih razmaka
+        $categoryName = Str::replaceMatches('/ /', '_', $formattedCategoryName); // zamjena razmaka sa _
 
-        $date_time = Carbon::now()->setTimezone('Europe/Belgrade'); // DateTime instanca
-        $year = $date_time->get('year');
-        $month = $date_time->get('month');
-        $day = $date_time->get('day');
-        $hour = $date_time->get('hour');
-        $minute = $date_time->get('minute');
+        $dateTime = Carbon::now()->setTimezone('Europe/Belgrade'); // DateTime instanca
+        $year = $dateTime->get('year');
+        $month = $dateTime->get('month');
+        $day = $dateTime->get('day');
+        $hour = $dateTime->get('hour');
+        $minute = $dateTime->get('minute');
 
-        $folder_path = storage_path('app\\csv\\'); // folder za CSV fajl
-        if (!file_exists($folder_path)) {
-            mkdir($folder_path);
+        $folderPath = storage_path('app\\csv\\'); // folder za CSV fajl
+        if (!file_exists($folderPath)) {
+            mkdir($folderPath);
         }
-        $filename = $category_name . "_" . $year . "_" . $month . "_" . $day . "-" . $hour . "_" . $minute . ".csv";
-        $file_path = $folder_path . $filename;
+        $fileName = $categoryName . "_" . $year . "_" . $month . "_" . $day . "-" . $hour . "_" . $minute . ".csv";
+        $filePath = $folderPath . $fileName;
 
-        $file = fopen($file_path, 'w'); // kreira fajl ako ne postoji
+        $file = fopen($filePath, 'w'); // kreira fajl ako ne postoji
         $columns = array('product_number', 'category_name', 'department_name', 'manufacturer_name', 'upc', 'sku', 'regular_price', 'sale_price', 'description');
         fputcsv($file, $columns); // dodaje nazive kolona u CSV fajl
 
         // Uzima polje name iz niza, ako postoji vise department-a dodaje ;
-        $category_departments = $category->departments->pluck('name')->implode('; ');
+        $categoryDepartments = $category->departments->pluck('name')->implode('; ');
 
         // Dodavanje podataka o proizvodima u CSV fajl
         foreach ($products as $product) {
@@ -180,7 +180,7 @@ class ProductController extends Controller
                 [
                     $product->product_number,
                     $category->name,
-                    $category_departments,
+                    $categoryDepartments,
                     $product->manufacturer->name,
                     $product->upc,
                     $product->sku,
@@ -197,7 +197,7 @@ class ProductController extends Controller
             "success" => true,
             "message" => "Uspiješno sačuvani podaci u CSV fajl",
             "file" => [
-                "path" => $file_path
+                "path" => $filePath
             ]
         ]);
     }

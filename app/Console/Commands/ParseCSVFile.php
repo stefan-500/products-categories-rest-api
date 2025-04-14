@@ -15,14 +15,14 @@ class ParseCSVFile extends Command
      *
      * @var string
      */
-    protected $signature = 'app:parse-csv-file';
+    protected $signature = 'import:products-csv';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Parse CSV file data into the database';
+    protected $description = 'Import products data from a CSV file to the database';
 
     /**
      * Execute the console command.
@@ -31,20 +31,20 @@ class ParseCSVFile extends Command
     {
         // Dodati naziv CSV fajla iz root foldera projekta (nazivfajla.csv)
         $file = fopen("", "r");
-        $assoc_array = [];
+        $assocArray = [];
 
         if ($file !== false) {
-            if (($header_data = fgetcsv($file)) !== false) { // header podaci 
-                $keys = $header_data;
+            if (($headerData = fgetcsv($file)) !== false) { // header podaci 
+                $keys = $headerData;
             }
 
             while (($row = fgetcsv($file)) !== false) { // red ostalih podataka
-                $assoc_array[] = array_combine($keys, $row); // kreiranje asocijativnog niza
+                $assocArray[] = array_combine($keys, $row); // kreiranje asocijativnog niza
             }
             fclose($file);
 
             // Mapiranje podataka u Eloquent modele
-            foreach ($assoc_array as $data) {
+            foreach ($assocArray as $data) {
 
                 $manufacturer = Manufacturer::firstOrCreate([
                     'name' => $data['manufacturer_name']
@@ -59,15 +59,15 @@ class ParseCSVFile extends Command
                 ]);
                 $category->departments()->sync([$department->id]); // pivot tabela category_department
 
-                $regular_price = $data['regular_price'] * 100; // cijene su tipa integer u bazi podataka
-                $sale_price = $data['sale_price'] * 100;
+                $regularPrice = $data['regular_price'] * 100; // cijene su tipa integer u bazi podataka
+                $salePrice = $data['sale_price'] * 100;
                 $product = Product::firstOrCreate(
                     [
                         'product_number' => $data['product_number'],
                         'upc' => $data['upc'],
                         'sku' => $data['sku'],
-                        'regular_price' => $regular_price,
-                        'sale_price' => $sale_price,
+                        'regular_price' => $regularPrice,
+                        'sale_price' => $salePrice,
                         'description' => $data['description'],
                         'manufacturer_id' => $manufacturer->id
                     ]
