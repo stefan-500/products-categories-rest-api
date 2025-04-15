@@ -27,7 +27,7 @@ class ParseCSVFile extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
         // Dodati naziv CSV fajla iz root foldera projekta (nazivfajla.csv)
         $file = fopen("", "r");

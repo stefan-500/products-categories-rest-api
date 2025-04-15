@@ -7,8 +7,10 @@ use App\Models\Category;
 use App\Models\Product;
 use Carbon\Carbon;
 use ErrorException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Str;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class ProductController extends Controller
@@ -16,7 +18,7 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
         // Prikaz podataka tabele products
         $products = Product::get();
@@ -32,7 +34,7 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, Product $product)
+    public function show(Request $request, Product $product): JsonResponse
     {
         // Prikaz svih proizvoda određene kategorije
         try {
@@ -43,7 +45,7 @@ class ProductController extends Controller
             }
 
             // Proizvod specificne kategorije, sa relacijama
-            $products = Product::whereHas('categories', function ($query) use ($category) {
+            $products = Product::whereHas('categories', function ($query) use ($category): void {
                 $query->where('categories.id', $category);
             })
                 ->with(['manufacturer', 'categories.departments'])
@@ -64,7 +66,7 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Product $product): JsonResponse
     {
         try {
 
@@ -112,7 +114,7 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Product $product): Response
     {
         // Brisanje proizvoda
         try {
@@ -124,7 +126,7 @@ class ProductController extends Controller
         return response(null, 202); // uspijeh
     }
 
-    public function generateCategoryProductsCSV(Request $request)
+    public function generateCategoryProductsCSV(Request $request): JsonResponse
     {
         // Validacija
         $validated = $request->validate([
@@ -133,7 +135,7 @@ class ProductController extends Controller
         $categoryID = $validated['id'];
 
         // Proizvodi kategorije po POST parametru id
-        $products = Product::whereHas('categories', function ($query) use ($categoryID) {
+        $products = Product::whereHas('categories', function ($query) use ($categoryID): void {
             $query->where('categories.id', $categoryID);
         })
             ->with(['manufacturer', 'categories.departments'])

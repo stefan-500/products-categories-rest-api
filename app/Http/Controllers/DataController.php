@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use Illuminate\Http\JsonResponse;
 
 class DataController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
         // Prikaz podataka o proizvodima
-
         $products = Product::with(['manufacturer', 'categories.departments'])
             ->get();
 

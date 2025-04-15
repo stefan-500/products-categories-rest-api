@@ -11,7 +11,7 @@ if (!function_exists('formatirajCijenu')) {
    * 
    * @return string
    */
-  function formatirajCijenu($cijena, $decimale = 2, $decimalniSeparator = ',', $separatorHiljada = '.')
+  function formatirajCijenu($cijena, $decimale = 2, $decimalniSeparator = ',', $separatorHiljada = '.'): string
   {
     return number_format(round($cijena / 100, $decimale), $decimale, $decimalniSeparator, $separatorHiljada);
   }

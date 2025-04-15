@@ -12,10 +12,10 @@ This project is a REST API built with Laravel, designed to handle product manage
 
 ## CSV File Processing
 
-The CSV file for processing needs to be located in the project's root folder.  
+The CSV file for processing must be located in the project's root folder.  
 To parse the CSV file and store data in the database, run the following Artisan command:
 ```
-php artisan app:parse-csv-file
+php artisan import:products-csv
 ```
 ## API Usage and Testing
 
